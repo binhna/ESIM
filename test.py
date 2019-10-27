@@ -5,6 +5,8 @@ import numpy as np
 from torch import nn
 from torch.autograd import Variable
 import os
+# import missinglink
+# missinglink_project = missinglink.PyTorchProject()
 
 from model.ESIM import ESIM
 from model.utils import SNLI, Quora, WIKI
@@ -74,7 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--use-char-emb', default=False,
                         action='store_true', dest='char')
     parser.add_argument('--vector_cache', type=str,
-                        default=os.path.join(os.getcwd(), '../../wikiqa_zalo/data/wiki.vi.vec'))
+                        default=os.path.join(os.getcwd(), '../drive/My Drive/wiki_zalo/data/wiki.vi.vec'))
     parser.add_argument('--word_vectors', type=str, default='glove.6B.100d')
     parser.add_argument('--preserve-case', action='store_false', dest='lower')
     parser.add_argument('--char_vectors', type=str,

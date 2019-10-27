@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from torch import nn, optim
 from torch.autograd import Variable
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 from time import localtime, strftime
 
 from model.ESIM import ESIM
@@ -141,7 +141,7 @@ def main():
     parser.add_argument('--patience', default=3, type=int)
     parser.add_argument('--train_embed', action='store_false', dest='fix_emb')
     parser.add_argument('--vector_cache', type=str,
-                        default=os.path.join(os.getcwd(), '../../wikiqa_zalo/data/wiki.vi.vec'))
+                        default=os.path.join(os.getcwd(), '../drive/My Drive/wiki_zalo/data/wiki.vi.vec'))
     parser.add_argument('--word_vectors', type=str, default='glove.6B.100d')
     parser.add_argument('--preserve-case', action='store_false', dest='lower')
     parser.add_argument('--char_vectors', type=str,

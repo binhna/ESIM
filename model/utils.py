@@ -105,10 +105,10 @@ class WIKI():
             test_fields = {'__id__': ('q_id', self.ids), 'id': ('a_id', self.ids),
                            'question': ('question', self.TEXT), 'text': ('answer', self.TEXT)}
 
-        data_zalo = data.TabularDataset(path='../../wikiqa_zalo/data/train_pr.json',
+        data_zalo = data.TabularDataset(path='../wikiqa_zalo/data/train_pr.json',
                                         format='json',
                                         fields=fields)
-        data_submission = data.TabularDataset(path='../../wikiqa_zalo/data/test_pr_submission.json',
+        data_submission = data.TabularDataset(path='../wikiqa_zalo/data/test_pr_submission.json',
                                               format='json',
                                               fields=test_fields)
 
