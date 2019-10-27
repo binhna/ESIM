@@ -127,18 +127,27 @@ class ESIM(nn.Module):
     def forward(self, **kwargs):
         # batch_size * seq_len
         sent1, sent1_len, sent2, sent2_len = kwargs['p'], kwargs['p_l'], kwargs['h'], kwargs['h_l']
+        sent1 = sent1.permute(1, 0)
+        sent2 = sent2.permute(1, 0)
         mask1, mask2 = sent1.eq(1), sent2.eq(1)
+        # print(sent1.shape)
 
         # embeds: batch_size * seq_len => batch_size * seq_len * emb_dim
         # x1 = self.bn_embeds(self.embeds(sent1).transpose(1, 2).contiguous()).transpose(1, 2)
         # x2 = self.bn_embeds(self.embeds(sent2).transpose(1, 2).contiguous()).transpose(1, 2)
         x1 = self.rnn_dropout(self.embeds(sent1))
         x2 = self.rnn_dropout(self.embeds(sent2))
+        # print(x1.shape)
+        # o1, _ = self.context_lstm(x1)
+        # print(o1.shape)
+        # exit()
 
         # --- Input Encoding ---
         # batch_size * seq_len * emb_dim => batch_size * seq_len * (hidden_size * 2)
-        o1 = torch_util.auto_rnn_bilstm(self.context_lstm, x1, sent1_len)
-        o2 = torch_util.auto_rnn_bilstm(self.context_lstm, x2, sent2_len)
+        # o1 = torch_util.auto_rnn_bilstm(self.context_lstm, x1, sent1_len)
+        # o2 = torch_util.auto_rnn_bilstm(self.context_lstm, x2, sent2_len)
+        o1, _ = self.context_lstm(x1)
+        o2, _ = self.context_lstm(x2)
 
         # --- Attention ---
         # batch_size * seq_len * (hidden_size * 2)
@@ -154,8 +163,10 @@ class ESIM(nn.Module):
         q2_combined = self.projection(q2_combined)
 
         # batch_size * seq_len * (2 * hidden_size)
-        q1_compose = torch_util.auto_rnn_bilstm(self.composition_lstm, q1_combined, sent1_len)
-        q2_compose = torch_util.auto_rnn_bilstm(self.composition_lstm, q2_combined, sent2_len)
+        # q1_compose = torch_util.auto_rnn_bilstm(self.composition_lstm, q1_combined, sent1_len)
+        # q2_compose = torch_util.auto_rnn_bilstm(self.composition_lstm, q2_combined, sent2_len)
+        q1_compose, _ = self.composition_lstm(q1_combined)
+        q2_compose, _ = self.composition_lstm(q2_combined)
 
         # --- Aggregate ---
         # input: batch_size * seq_len * (2 * hidden_size)

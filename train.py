@@ -9,7 +9,7 @@ from tensorboardX import SummaryWriter
 from time import localtime, strftime
 
 from model.ESIM import ESIM
-from model.utils import SNLI, Quora
+from model.utils import SNLI, Quora, WIKI
 from test import test
 
 
@@ -48,11 +48,15 @@ def train(args, data):
         for i, batch in enumerate(iterator):
             if args.data_type == 'SNLI':
                 s1, s2 = 'premise', 'hypothesis'
-            else:
+            elif args.data_type == 'Quora':
                 s1, s2 = 'q1', 'q2'
-
-            s1, s1_l = getattr(batch, s1)
-            s2, s2_l = getattr(batch, s2)
+            else:
+                s1, s2 = 'question', 'answer'
+            # print(getattr(batch, s1), batch.question.shape)
+            s1 = getattr(batch, s1)
+            s1_l = s1.shape[0]
+            s2 = getattr(batch, s2)
+            s2_l = s2.shape[0]
 
             kwargs = {'p': s1, 'p_l': s1_l, 'h': s2, 'h_l': s2_l}
 
@@ -68,6 +72,8 @@ def train(args, data):
             n_correct += (pred == batch.label).sum().float()
             n_total += len(pred)
             train_acc = n_correct / n_total
+            # print(f'train loss: {train_loss:.3f}'
+            #       f' / train acc: {train_acc: .3f}')
 
             if (i + 1) % args.print_freq == 0:
                 dev_loss, dev_acc = test(model, args, data, mode='dev')
@@ -117,10 +123,10 @@ def train(args, data):
 def main():
     print('add projection-layer, use dropout without bn')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch-size', default=32, type=int)
+    parser.add_argument('--batch-size', default=16, type=int)
     parser.add_argument('--char-dim', default=20, type=int)
     parser.add_argument('--char-hidden-size', default=50, type=int)
-    parser.add_argument('--data-type', default='SNLI', help='available: SNLI or Quora')
+    parser.add_argument('--data-type', default='WIKI', help='available: SNLI or Quora or WIKI')
     parser.add_argument('--dropout', default=0.5, type=float)
     parser.add_argument('--epochs', default=15, type=int)
     parser.add_argument('--gpu', default=0, type=int)
@@ -130,19 +136,28 @@ def main():
                         help='max length of input sentences model can accept, if -1, it accepts any length')
     # parser.add_argument('--num-perspective', default=20, type=int)
     parser.add_argument('--print-freq', default=1000, type=int)
-    parser.add_argument('--use-char-emb', default=False, action='store_true')
+    parser.add_argument('--use-char-emb', default=False, action='store_true', dest='char')
     parser.add_argument('--word-dim', default=300, type=int)
     parser.add_argument('--patience', default=3, type=int)
     parser.add_argument('--train_embed', action='store_false', dest='fix_emb')
+    parser.add_argument('--vector_cache', type=str,
+                        default=os.path.join(os.getcwd(), '../../wikiqa_zalo/data/wiki.vi.vec'))
+    parser.add_argument('--word_vectors', type=str, default='glove.6B.100d')
+    parser.add_argument('--preserve-case', action='store_false', dest='lower')
+    parser.add_argument('--char_vectors', type=str,
+                        default='../data/C2V.vec')
     args = parser.parse_args()
     args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else 'cpu')
-    print(args.use_char_emb)
+    print(args.char)
     if args.data_type == 'SNLI':
         print('loading SNLI data...')
         data = SNLI(args)
     elif args.data_type == 'Quora':
         print('loading Quora data...')
         data = Quora(args)
+    elif args.data_type == 'WIKI':
+        print('loading Wiki data...')
+        data = WIKI(args)
     else:
         raise NotImplementedError('only SNLI or Quora data is possible')
 

@@ -6,7 +6,7 @@ from torch import nn
 from torch.autograd import Variable
 
 from model.ESIM import ESIM
-from model.utils import SNLI, Quora
+from model.utils import SNLI, Quora, WIKI
 
 
 def test(model, args, data, mode='test'):
@@ -22,11 +22,15 @@ def test(model, args, data, mode='test'):
     for batch in iterator:
         if args.data_type == 'SNLI':
             s1, s2 = 'premise', 'hypothesis'
-        else:
+        elif args.data_type == 'Quora':
             s1, s2 = 'q1', 'q2'
+        else:
+            s1, s2 = 'question', 'answer'
 
-        s1, s1_l = getattr(batch, s1)
-        s2, s2_l = getattr(batch, s2)
+        s1 = getattr(batch, s1)
+        s1_l = s1.shape[0]
+        s2 = getattr(batch, s2)
+        s2_l = s2.shape[0]
 
         kwargs = {'p': s1, 'p_l': s1_l, 'h': s2, 'h_l': s2_l}
 
