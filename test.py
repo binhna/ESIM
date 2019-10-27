@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from torch import nn
 from torch.autograd import Variable
+import os
 
 from model.ESIM import ESIM
 from model.utils import SNLI, Quora, WIKI
@@ -67,10 +68,17 @@ if __name__ == '__main__':
     parser.add_argument('--data-type', default='SNLI', help='available: SNLI or Quora')
     parser.add_argument('--epoch', default=10, type=int)
     parser.add_argument('--gpu', default=0, type=int)
-    parser.add_argument('--hidden-size', default=100, type=int)
+    parser.add_argument('--hidden-size', default=300, type=int)
     parser.add_argument('--learning-rate', default=0.001, type=float)
     parser.add_argument('--num-perspective', default=20, type=int)
-    parser.add_argument('--use-char-emb', default=True, action='store_true')
+    parser.add_argument('--use-char-emb', default=False,
+                        action='store_true', dest='char')
+    parser.add_argument('--vector_cache', type=str,
+                        default=os.path.join(os.getcwd(), '../../wikiqa_zalo/data/wiki.vi.vec'))
+    parser.add_argument('--word_vectors', type=str, default='glove.6B.100d')
+    parser.add_argument('--preserve-case', action='store_false', dest='lower')
+    parser.add_argument('--char_vectors', type=str,
+                        default='../data/C2V.vec')
     parser.add_argument('--word-dim', default=300, type=int)
 
     parser.add_argument('--model-path', required=True)
@@ -83,8 +91,13 @@ if __name__ == '__main__':
     elif args.data_type == 'Quora':
         print('loading Quora data...')
         data = Quora(args)
+    elif args.data_type == 'WIKI':
+        print('loading Wiki data...')
+        data = WIKI(args)
+    else:
+        raise NotImplementedError('only SNLI or Quora data is possible')
 
-    setattr(args, 'char_vocab_size', len(data.char_vocab))
+    # setattr(args, 'char_vocab_size', len(data.char_vocab))
     setattr(args, 'word_vocab_size', len(data.TEXT.vocab))
     setattr(args, 'class_size', len(data.LABEL.vocab))
     setattr(args, 'max_word_len', data.max_word_len)
